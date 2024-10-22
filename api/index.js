@@ -23,6 +23,23 @@ const dbClient = new Client({
 });
 dbClient.connect();
 
+const connectWithRetry = async () => {
+    let retries = 5; // Coba 5 kali
+    while (retries) {
+      try {
+        await dbClient.connect(); // Coba koneksi ke database
+        console.log('Connected to the database!');
+        break; // Koneksi sukses, keluar dari loop
+      } catch (err) {
+        console.log(`Connection to database failed. Retrying in 5 seconds... (${retries} attempts left)`);
+        retries -= 1;
+        await new Promise(res => setTimeout(res, 5000)); // Tunggu 5 detik sebelum mencoba lagi
+      }
+    }
+  };
+  
+  connectWithRetry();
+  
 // WebSocket route
 app.ws('/realtime', (ws) => {
     console.log('New WebSocket connection');
