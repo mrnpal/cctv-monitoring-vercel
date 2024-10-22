@@ -85,13 +85,13 @@ app.get('/api/ping-status', async (req, res) => {
 cron.schedule('* * * * *', pingAllIPs);
 
 // Start server
-const PORT = process.env.PORT || 8081; 
-const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// const PORT = process.env.PORT || 8081; 
+// const server = app.listen(PORT, () => {
+//     console.log(`Server running on port ${PORT}`);
+// });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// });
 
 module.exports = app;
