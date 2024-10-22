@@ -94,4 +94,10 @@ cron.schedule('* * * * *', pingAllIPs);
 //     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 // });
 
+app.use((req, res, next) => {
+    res.setTimeout(20000); // Set timeout ke 20 detik
+    next();
+  });
+  
+
 module.exports = app;
