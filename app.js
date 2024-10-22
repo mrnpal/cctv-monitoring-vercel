@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { Client } = require('pg');
 const ping = require('ping');
@@ -5,17 +6,17 @@ const cron = require('node-cron');
 const expressWs = require('express-ws');
 
 const app = express();
-expressWs(app); // Inisialisasi express-ws
+expressWs(app); 
 
 app.use(express.static('public'));
 
-// Setup PostgreSQL client
+// database
 const dbClient = new Client({
-  user: 'avnadmin',
-  host: 'monitoring-cctv.i.aivencloud.com',
-  database: 'defaultdb',
-  password: 'AVNS_2vW5LIEz810Pv8gdpDg',
-  port: 26074,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
   ssl: {
     rejectUnauthorized: false
   }
@@ -80,22 +81,17 @@ app.get('/api/ping-status', async (req, res) => {
     }
 });
 
-
 // Schedule the ping every minute
 cron.schedule('* * * * *', pingAllIPs);
 
 // Start server
-const PORT = process.env.PORT || 8087; 
+const PORT = process.env.PORT || 8081; 
 const server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// app.get('/', (req, res) => {
-//     res.send('Welcome to the Backend Monitoring!!!');
-//   });
-  
+module.exports = app;

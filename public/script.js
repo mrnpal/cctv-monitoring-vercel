@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://localhost:8087/realtime');
+const ws = new WebSocket('ws://localhost:8081/realtime');
 const ipTableBody = document.querySelector('#ipTable tbody');
 
 // Fungsi untuk menambahkan atau memperbarui baris di tabel
