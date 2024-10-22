@@ -1,0 +1,85 @@
+/* Reset dasar untuk margin dan padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Style untuk body */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container utama */
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Judul */
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #007BFF; /* Warna biru */
+}
+
+/* Tabel */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+/* Header tabel */
+th {
+    background-color: #007BFF; /* Warna biru */
+    color: #fff;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Sel tabel */
+td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Hover effect untuk baris tabel */
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Status color */
+td:nth-child(3) {
+    font-weight: bold;
+}
+
+td:nth-child(3).connected {
+    color: #28a745; /* Hijau */
+}
+
+td:nth-child(3).timeout {
+    color: #dc3545; /* Merah */
+}
+
+/* Responsif */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    table {
+        font-size: 0.9rem;
+    }
+
+    th, td {
+        padding: 8px;
+    }
+}
