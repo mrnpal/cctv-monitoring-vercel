@@ -10,7 +10,7 @@ expressWs(app);
 
 app.use(express.static('public'));
 
-// database
+// Database configuration
 const dbClient = new Client({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -36,68 +36,86 @@ app.ws('/realtime', (ws) => {
     });
 });
 
-// Ping function
+// Ping function with reduced timeout
 const pingIPAndPort = async (ip, port) => {
-    const res = await ping.promise.probe(ip, { timeout: 10 });
+    const res = await ping.promise.probe(ip, { timeout: 5 }); // Reduced timeout to 5 seconds
     return res.alive;
 };
 
-// Ping all IPs and Ports from DB
+// Variable to control overlapping cron executions
+let isRunning = false;
+
+// Ping all IPs and Ports from the database in parallel
 const pingAllIPs = async () => {
-    const res = await dbClient.query('SELECT * FROM ip_port_monitor');
-    const now = new Date();
+    if (isRunning) {
+        console.log("Ping process already running, skipping this execution.");
+        return;
+    }
+    
+    isRunning = true;
+    try {
+        console.time('PingAllIPs'); // Start timer for debugging
+        const res = await dbClient.query('SELECT * FROM ip_port_monitor');
+        const now = new Date();
 
-    for (const row of res.rows) {
-        const { id, ip_address, port, last_status } = row;
-        const isAlive = await pingIPAndPort(ip_address, port);
+        const pingPromises = res.rows.map(async (row) => {
+            const { id, ip_address, port, last_status } = row;
+            const isAlive = await pingIPAndPort(ip_address, port);
 
-        let status = isAlive ? 'connected' : 'timeout';
+            let status = isAlive ? 'connected' : 'timeout';
 
-        if (status !== last_status) {
-            // Update status in database
-            await dbClient.query(
-                'UPDATE ip_port_monitor SET status = $1, last_checked = $2, last_status = $3 WHERE id = $4',
-                [status, now, status, id]
-            );
+            if (status !== last_status) {
+                // Update status in the database
+                await dbClient.query(
+                    'UPDATE ip_port_monitor SET status = $1, last_checked = $2, last_status = $3 WHERE id = $4',
+                    [status, now, status, id]
+                );
 
-            // Broadcast update to WebSocket clients
-            app.ws.getWss().clients.forEach((client) => {
-                if (client.readyState === client.OPEN) {
-                    client.send(JSON.stringify({ ip: ip_address, port, status }));
-                }
-            });
-        }
+                // Broadcast update to WebSocket clients
+                app.ws.getWss().clients.forEach((client) => {
+                    if (client.readyState === client.OPEN) {
+                        client.send(JSON.stringify({ ip: ip_address, port, status }));
+                    }
+                });
+            }
+        });
+
+        // Wait for all pings to complete
+        await Promise.all(pingPromises);
+        console.timeEnd('PingAllIPs'); // End timer for debugging
+    } catch (error) {
+        console.error('Error during ping:', error);
+    } finally {
+        isRunning = false; // Allow the next cron job to run
     }
 };
 
-// Endpoint untuk mendapatkan data IP dan status dari database
+// Endpoint to get IP and status data from the database
 app.get('/api/ping-status', async (req, res) => {
     try {
         const result = await dbClient.query('SELECT ip_address, port, status, last_checked, location FROM ip_port_monitor');
-        res.json(result.rows); // Mengembalikan data dalam format JSON
+        res.json(result.rows); // Return the data as JSON
     } catch (error) {
         console.error('Error fetching data:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-// Schedule the ping every minute
+// Schedule the ping to run every minute
 cron.schedule('* * * * *', pingAllIPs);
 
+// Add timeout for all routes to prevent long-running requests
+app.use((req, res, next) => {
+    res.setTimeout(20000); // Set timeout to 20 seconds
+    next();
+});
+
 // Start server
-// const PORT = process.env.PORT || 8081; 
-// const server = app.listen(PORT, () => {
+// Uncomment this section if running locally, Vercel handles this in production
+// const PORT = process.env.PORT || 8081;
+// app.listen(PORT, () => {
 //     console.log(`Server running on port ${PORT}`);
 // });
 
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'public', 'index.html'));
-// });
-
-app.use((req, res, next) => {
-    res.setTimeout(20000); // Set timeout ke 20 detik
-    next();
-  });
-  
-
+// Export the app for Vercel
 module.exports = app;
