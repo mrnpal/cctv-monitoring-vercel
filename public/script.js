@@ -60,4 +60,4 @@ ws.onmessage = (event) => {
 // Refresh data setiap 60 detik (60000 ms)
 setInterval(() => {
     fetchPingStatus();
-}, 60000);
+}, 30000);
