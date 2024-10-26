@@ -48,7 +48,6 @@ async function fetchPingStatus() {
     }
 }
 
-// Ambil data saat halaman dimuat
 fetchPingStatus();
 
 // Menerima pesan dari server melalui WebSocket
