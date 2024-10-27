@@ -1,9 +1,17 @@
 const ws = new WebSocket('ws://localhost:8081/realtime');
 const ipTableBody = document.querySelector('#ipTable tbody');
 
+// Log untuk mengetahui koneksi WebSocket
+ws.onopen = () => {
+    console.log("Connected to WebSocket server.");
+};
+
+ws.onerror = (error) => {
+    console.error("WebSocket error:", error);
+};
+
 // Fungsi untuk menambahkan atau memperbarui baris di tabel
 function updateRow(ip, port, status, lastChecked, location) {
-    // Cek apakah baris sudah ada
     const existingRow = Array.from(ipTableBody.rows).find(row => {
         return row.cells[0].textContent === ip && row.cells[1].textContent == port;
     });
@@ -56,7 +64,7 @@ ws.onmessage = (event) => {
     updateRow(data.ip, data.port, data.status, new Date().toLocaleString(), data.location);
 };
 
-// Refresh data setiap 60 detik (60000 ms)
+// Refresh data dari API setiap 30 detik untuk sinkronisasi
 setInterval(() => {
     fetchPingStatus();
 }, 30000);
